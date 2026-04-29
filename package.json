@@ -18,6 +18,7 @@
   "files": [
     "dist",
     "README.md",
+    "README.zh-CN.md",
     "LICENSE",
     "SECURITY.md"
   ],

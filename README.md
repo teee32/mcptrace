@@ -1,5 +1,7 @@
 # MCPTrace
 
+[简体中文](./README.zh-CN.md) | English
+
 > **MCPTrace is a flight recorder and replay debugger for MCP stdio servers.**
 
 MCPTrace sits between an AI agent (Claude Desktop, Claude Code, Cursor, …) and
