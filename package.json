@@ -4,20 +4,35 @@
   "description": "Flight recorder and replay debugger for MCP stdio servers.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teee32/mcptrace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/teee32/mcptrace/issues"
+  },
+  "homepage": "https://github.com/teee32/mcptrace#readme",
   "bin": {
     "mcptrace": "./dist/cli.js"
   },
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "prepack": "npm run build",
+    "smoke": "node scripts/smoke.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "keywords": [
     "mcp",

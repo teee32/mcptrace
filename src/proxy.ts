@@ -8,6 +8,7 @@ import { renderReport } from "./report.js";
 export interface WrapOptions {
   tracePath: string;
   reportPath?: string;
+  unsafeRaw?: boolean;
   executable: string;
   args: string[];
 }
@@ -30,6 +31,8 @@ export async function runWrap(opts: WrapOptions): Promise<number> {
   const trace = new TraceBuilder({
     executable: opts.executable,
     args: opts.args,
+  }, {
+    redact: !opts.unsafeRaw,
   });
 
   const child = spawn(opts.executable, opts.args, {

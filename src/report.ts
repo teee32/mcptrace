@@ -160,6 +160,10 @@ function fmtParams(value: unknown): string {
   }
 }
 
+function fmtValue(value: unknown): string {
+  return escapeHtml(String(value));
+}
+
 export function renderReport(trace: TraceFile): string {
   const cmd = `${trace.command.executable} ${trace.command.args.join(" ")}`.trim();
   const eventRows = trace.events
@@ -207,7 +211,7 @@ export function renderReport(trace: TraceFile): string {
 
       return `
         <div class="row ${isErr} ${isRisky}" data-event-row>
-          <span class="seq">#${ev.seq}</span>
+          <span class="seq">#${fmtValue(ev.seq)}</span>
           <span class="dir ${dirClass}">${dirLabel}</span>
           <span class="kind">${escapeHtml(ev.kind)}</span>
           <span class="method">${method} <span class="meta">${escapeHtml(idDisp)}</span></span>
@@ -228,11 +232,11 @@ export function renderReport(trace: TraceFile): string {
         ? `<span class="err">${escapeHtml(JSON.stringify(c.error)).slice(0, 200)}</span>`
         : "";
       return `<tr>
-        <td>#${c.id}</td>
+        <td>#${fmtValue(c.id)}</td>
         <td><code>${escapeHtml(c.method)}</code></td>
         <td>${escapeHtml(c.toolName ?? "")}</td>
-        <td>${dur}</td>
-        <td>${c.riskFlags.length}</td>
+        <td>${fmtValue(dur)}</td>
+        <td>${fmtValue(c.riskFlags.length)}</td>
         <td>${errCell}</td>
       </tr>`;
     })
@@ -270,14 +274,14 @@ export function renderReport(trace: TraceFile): string {
 </header>
 <main>
   <section class="summary">
-    <div class="card"><div class="label">Messages</div><div class="value">${trace.summary.messageCount}</div></div>
-    <div class="card"><div class="label">Requests</div><div class="value">${trace.summary.requestCount}</div></div>
-    <div class="card"><div class="label">Responses</div><div class="value">${trace.summary.responseCount}</div></div>
-    <div class="card"><div class="label">Notifications</div><div class="value">${trace.summary.notificationCount}</div></div>
-    <div class="card"><div class="label">Tool calls</div><div class="value">${trace.summary.toolCallCount}</div></div>
-    <div class="card ${trace.summary.failedCount ? "bad" : "good"}"><div class="label">Failed</div><div class="value">${trace.summary.failedCount}</div></div>
-    <div class="card ${trace.summary.riskCount ? "warn" : "good"}"><div class="label">Risks</div><div class="value">${trace.summary.riskCount}</div></div>
-    <div class="card"><div class="label">Duration</div><div class="value">${trace.summary.durationMs} ms</div></div>
+    <div class="card"><div class="label">Messages</div><div class="value">${fmtValue(trace.summary.messageCount)}</div></div>
+    <div class="card"><div class="label">Requests</div><div class="value">${fmtValue(trace.summary.requestCount)}</div></div>
+    <div class="card"><div class="label">Responses</div><div class="value">${fmtValue(trace.summary.responseCount)}</div></div>
+    <div class="card"><div class="label">Notifications</div><div class="value">${fmtValue(trace.summary.notificationCount)}</div></div>
+    <div class="card"><div class="label">Tool calls</div><div class="value">${fmtValue(trace.summary.toolCallCount)}</div></div>
+    <div class="card ${trace.summary.failedCount ? "bad" : "good"}"><div class="label">Failed</div><div class="value">${fmtValue(trace.summary.failedCount)}</div></div>
+    <div class="card ${trace.summary.riskCount ? "warn" : "good"}"><div class="label">Risks</div><div class="value">${fmtValue(trace.summary.riskCount)}</div></div>
+    <div class="card"><div class="label">Duration</div><div class="value">${fmtValue(trace.summary.durationMs)} ms</div></div>
   </section>
 
   <section>

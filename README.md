@@ -46,6 +46,11 @@ server as a child, forwards every line in both directions, and records the
 traffic. When the client disconnects, the trace JSON and HTML report are
 written to disk.
 
+By default, MCPTrace redacts common secret-bearing fields such as
+`authorization`, `token`, `apiKey`, `password`, `secret`, and `private_key`, and
+omits raw JSON-RPC lines from persisted traces. Use `--unsafe-raw` only when you
+need byte-for-byte payload capture for private local debugging.
+
 > **stdout is sacred.** In `wrap` mode, mcptrace never writes anything to
 > stdout other than valid MCP JSON-RPC. All logs go to stderr, prefixed with
 > `[mcptrace]` or `[mcptrace:server]`.
@@ -79,24 +84,28 @@ See [`examples/claude-desktop-config.json`](./examples/claude-desktop-config.jso
 ### `mcptrace wrap`
 
 ```bash
-mcptrace wrap --trace <path> [--report <path>] -- <server-cmd> [args...]
+mcptrace wrap --trace <path> [--report <path>] [--unsafe-raw] -- <server-cmd> [args...]
 ```
 
 Run an MCP stdio server through mcptrace.
 
+Default traces are redacted for safer sharing. `--unsafe-raw` stores unredacted
+payloads and raw JSON-RPC lines.
+
 ### `mcptrace report`
 
 ```bash
-mcptrace report ./trace.json --out ./report.html
+mcptrace report ./trace.json --out ./report.html [--unsafe-raw]
 ```
 
 Re-render the HTML report from a saved trace. The HTML is a single
-self-contained file — no CDN, no fonts, no JS framework.
+self-contained file — no CDN, no fonts, no JS framework. Existing trace files
+are redacted again while rendering unless `--unsafe-raw` is passed.
 
 ### `mcptrace diff`
 
 ```bash
-mcptrace diff ./old-trace.json ./new-trace.json
+mcptrace diff ./old-trace.json ./new-trace.json [--unsafe-raw]
 ```
 
 Prints a markdown diff showing:
@@ -105,6 +114,8 @@ Prints a markdown diff showing:
 - calls whose params changed
 - new / resolved risk flags
 - side-by-side summary numbers
+
+Diff output redacts common secret-bearing fields by default.
 
 ### `mcptrace replay`
 
@@ -121,6 +132,10 @@ against a freshly spawned server, then prints a markdown summary:
 - responses whose error state changed vs. the original trace
 
 Replay is best-effort and does not preserve original timing.
+
+If the trace was captured with default redaction, replay uses the redacted
+payloads. Capture with `wrap --unsafe-raw` when exact replay of sensitive fields
+is required and the trace will remain private.
 
 ## Trace schema
 
@@ -157,8 +172,17 @@ A trace is a single JSON file with this shape:
 }
 ```
 
-`events` is the raw timeline. `calls` is a derived view keyed by request id,
-with the response merged in.
+`events` is the timeline. `calls` is a derived view keyed by request id, with
+the response merged in. Raw JSON-RPC lines are omitted by default; they are
+present only for traces captured with `wrap --unsafe-raw`.
+
+## Sensitive data
+
+MCP traffic can include prompts, file contents, private paths, API keys, and
+other secrets. Treat traces, reports, diffs, and replay summaries as sensitive
+artifacts until reviewed. The repository `.gitignore` excludes common trace and
+credential file patterns, but you should still inspect artifacts before sharing
+or committing them.
 
 ## Risk detection
 
@@ -182,7 +206,7 @@ False positives are expected. The goal is: nothing risky goes by unnoticed.
 - [ ] Pluggable risk rules (load from JSON / TS file)
 - [ ] Streaming JSONL trace output (rotate on size)
 - [ ] HTTP/SSE transport (in addition to stdio)
-- [ ] Sanitization mode (redact secrets in trace)
+- [ ] Configurable redaction rules
 - [ ] Tool-aware replay with assertion mode
 
 Issues and PRs welcome.

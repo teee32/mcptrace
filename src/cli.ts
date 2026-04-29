@@ -6,6 +6,7 @@ import { renderReport } from "./report.js";
 import { diffTraces } from "./diff.js";
 import { runReplay, formatReplaySummary } from "./replay.js";
 import { TraceFile } from "./types.js";
+import { redactTrace } from "./redact.js";
 
 function ensureDir(filePath: string): void {
   mkdirSync(dirname(resolve(filePath)), { recursive: true });
@@ -15,6 +16,11 @@ function splitDoubleDash(argv: string[]): { before: string[]; after: string[] } 
   const idx = argv.indexOf("--");
   if (idx === -1) return { before: argv.slice(), after: [] };
   return { before: argv.slice(0, idx), after: argv.slice(idx + 1) };
+}
+
+function failUsage(message: string): never {
+  process.stderr.write(`[mcptrace] error: ${message}\n`);
+  process.exit(2);
 }
 
 const program = new Command();
@@ -33,7 +39,8 @@ program
   )
   .requiredOption("--trace <path>", "path to write the trace JSON file")
   .option("--report <path>", "also write an HTML report to this path")
-  .allowUnknownOption(false)
+  .option("--unsafe-raw", "store unredacted payloads and raw JSON-RPC lines")
+  .allowUnknownOption(true)
   .helpOption("-h, --help", "show help")
   .action(async () => {
     // commander does not parse args after `--` consistently across versions;
@@ -54,25 +61,33 @@ program
     const code = await runWrap({
       tracePath: opts.trace,
       reportPath: opts.report,
+      unsafeRaw: opts.unsafeRaw,
       executable,
       args: rest,
     });
     process.exit(code);
   });
 
-function parseWrapFlags(tokens: string[]): { trace: string; report?: string } {
+function parseWrapFlags(tokens: string[]): {
+  trace: string;
+  report?: string;
+  unsafeRaw?: boolean;
+} {
   let trace: string | undefined;
   let report: string | undefined;
+  let unsafeRaw = false;
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
     if (t === "--trace") {
-      trace = tokens[++i];
+      trace = readFlagValue(tokens, ++i, "--trace");
     } else if (t.startsWith("--trace=")) {
-      trace = t.slice("--trace=".length);
+      trace = readInlineFlagValue(t.slice("--trace=".length), "--trace");
     } else if (t === "--report") {
-      report = tokens[++i];
+      report = readFlagValue(tokens, ++i, "--report");
     } else if (t.startsWith("--report=")) {
-      report = t.slice("--report=".length);
+      report = readInlineFlagValue(t.slice("--report=".length), "--report");
+    } else if (t === "--unsafe-raw") {
+      unsafeRaw = true;
     } else if (t === "-h" || t === "--help") {
       printWrapHelp();
       process.exit(0);
@@ -82,10 +97,22 @@ function parseWrapFlags(tokens: string[]): { trace: string; report?: string } {
     }
   }
   if (!trace) {
-    process.stderr.write("[mcptrace] error: --trace <path> is required\n");
-    process.exit(2);
+    failUsage("--trace <path> is required");
   }
-  return { trace, report };
+  return { trace, report, unsafeRaw };
+}
+
+function readFlagValue(tokens: string[], index: number, flag: string): string {
+  const value = tokens[index];
+  if (!value || value.startsWith("--")) {
+    failUsage(`${flag} <path> argument missing`);
+  }
+  return value;
+}
+
+function readInlineFlagValue(value: string, flag: string): string {
+  if (!value) failUsage(`${flag} <path> argument missing`);
+  return value;
 }
 
 function printWrapHelp(): void {
@@ -96,6 +123,7 @@ function printWrapHelp(): void {
       "Options:",
       "  --trace <path>    where to write the trace JSON file (required)",
       "  --report <path>   also write a self-contained HTML report",
+      "  --unsafe-raw      store unredacted payloads and raw JSON-RPC lines",
       "  -h, --help        show help",
       "",
       "Example:",
@@ -111,10 +139,11 @@ program
   .command("report <trace>")
   .description("Render an HTML report from an existing trace JSON file.")
   .requiredOption("--out <path>", "where to write the HTML report")
-  .action((tracePath: string, opts: { out: string }) => {
+  .option("--unsafe-raw", "render unredacted payloads from the trace file")
+  .action((tracePath: string, opts: { out: string; unsafeRaw?: boolean }) => {
     const raw = readFileSync(tracePath, "utf8");
     const data = JSON.parse(raw) as TraceFile;
-    const html = renderReport(data);
+    const html = renderReport(opts.unsafeRaw ? data : redactTrace(data));
     ensureDir(opts.out);
     writeFileSync(opts.out, html, "utf8");
     process.stderr.write(`[mcptrace] report written to ${opts.out}\n`);
@@ -124,8 +153,9 @@ program
 program
   .command("diff <oldTrace> <newTrace>")
   .description("Diff two trace files and print a markdown summary.")
-  .action((oldPath: string, newPath: string) => {
-    const md = diffTraces(oldPath, newPath);
+  .option("--unsafe-raw", "print unredacted parameter values")
+  .action((oldPath: string, newPath: string, opts: { unsafeRaw?: boolean }) => {
+    const md = diffTraces(oldPath, newPath, { redact: !opts.unsafeRaw });
     process.stdout.write(md);
     if (!md.endsWith("\n")) process.stdout.write("\n");
   });

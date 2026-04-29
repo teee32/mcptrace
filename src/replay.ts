@@ -31,6 +31,10 @@ function logErr(msg: string): void {
   process.stderr.write(`[mcptrace:replay] ${msg}\n`);
 }
 
+function keyForId(id: string | number): string {
+  return `${typeof id}:${id}`;
+}
+
 export async function runReplay(opts: ReplayOptions): Promise<ReplaySummary> {
   const trace = loadTrace(opts.tracePath);
   const quietMs = opts.quietMs ?? 1500;
@@ -42,7 +46,8 @@ export async function runReplay(opts: ReplayOptions): Promise<ReplaySummary> {
       (e.kind === "request" || e.kind === "notification"),
   );
 
-  // Build map of original responses keyed by id, to compare error state
+  // Build map of original responses keyed by id, to compare error state.
+  // JSON-RPC allows both numeric and string ids; preserve the type in the key.
   const originalResponses = new Map<string, { error: unknown }>();
   for (const e of trace.events) {
     if (
@@ -51,7 +56,7 @@ export async function runReplay(opts: ReplayOptions): Promise<ReplaySummary> {
       e.id !== undefined &&
       e.id !== null
     ) {
-      originalResponses.set(String(e.id), { error: e.error });
+      originalResponses.set(keyForId(e.id), { error: e.error });
     }
   }
 
@@ -73,7 +78,7 @@ export async function runReplay(opts: ReplayOptions): Promise<ReplaySummary> {
       if (value && typeof value === "object") {
         const obj = value as { id?: string | number | null; error?: unknown };
         if (obj.id !== undefined && obj.id !== null) {
-          receivedById.set(String(obj.id), { error: obj.error });
+          receivedById.set(keyForId(obj.id), { error: obj.error });
         }
       }
     },
@@ -127,13 +132,13 @@ export async function runReplay(opts: ReplayOptions): Promise<ReplaySummary> {
   // Compute summary
   const missingResponseIds: Array<string | number> = [];
   for (const id of sentRequestIds) {
-    if (!receivedById.has(String(id))) missingResponseIds.push(id);
+    if (!receivedById.has(keyForId(id))) missingResponseIds.push(id);
   }
 
   const errorStateChanged: ReplaySummary["errorStateChanged"] = [];
   for (const id of sentRequestIds) {
-    const orig = originalResponses.get(String(id));
-    const now = receivedById.get(String(id));
+    const orig = originalResponses.get(keyForId(id));
+    const now = receivedById.get(keyForId(id));
     if (!orig || !now) continue;
     const oldErrored = orig.error !== undefined && orig.error !== null;
     const newErrored = now.error !== undefined && now.error !== null;

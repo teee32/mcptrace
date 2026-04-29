@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { TraceBuilder } from "../src/trace.js";
+import { REDACTED } from "../src/redact.js";
 
 describe("TraceBuilder", () => {
   it("records a request event", () => {
@@ -16,6 +17,76 @@ describe("TraceBuilder", () => {
     expect(trace.events[0].method).toBe("initialize");
   });
 
+  it("redacts common secret fields by default", () => {
+    const t = new TraceBuilder({
+      executable: "node",
+      args: ["server.js", "--api-key=secret-token"],
+    });
+    t.recordMessage(
+      "client_to_server",
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: {
+          name: "echo",
+          arguments: {
+            token: "secret-token",
+            url: "https://example.test/path?token=secret-token",
+          },
+        },
+      },
+      '{"params":{"arguments":{"token":"secret-token"}}}',
+    );
+    const trace = t.toJSON();
+    expect(trace.command.args).toEqual(["server.js", `--api-key=${REDACTED}`]);
+    expect(trace.events[0].raw).toBeUndefined();
+    expect(trace.events[0].params).toEqual({
+      name: "echo",
+      arguments: {
+        token: REDACTED,
+        url: `https://example.test/path?token=${REDACTED}`,
+      },
+    });
+    expect(
+      trace.events[0].riskFlags.some((flag) =>
+        flag.message.includes(`token=${REDACTED}`),
+      ),
+    ).toBe(true);
+    expect(trace.calls[0].params).toEqual({
+      name: "echo",
+      arguments: {
+        token: REDACTED,
+        url: `https://example.test/path?token=${REDACTED}`,
+      },
+    });
+    expect(
+      trace.calls[0].riskFlags.some((flag) =>
+        flag.message.includes(`token=${REDACTED}`),
+      ),
+    ).toBe(true);
+  });
+
+  it("can preserve raw payloads for unsafe local debugging", () => {
+    const t = new TraceBuilder({ executable: "node", args: [] }, { redact: false });
+    t.recordMessage(
+      "client_to_server",
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: { name: "echo", arguments: { token: "secret-token" } },
+      },
+      '{"params":{"arguments":{"token":"secret-token"}}}',
+    );
+    const trace = t.toJSON();
+    expect(trace.events[0].raw).toContain("secret-token");
+    expect(trace.events[0].params).toEqual({
+      name: "echo",
+      arguments: { token: "secret-token" },
+    });
+  });
+
   it("records a response event", () => {
     const t = new TraceBuilder({ executable: "node", args: [] });
     t.recordMessage("server_to_client", {
@@ -25,6 +96,19 @@ describe("TraceBuilder", () => {
     });
     const trace = t.toJSON();
     expect(trace.summary.responseCount).toBe(1);
+    expect(trace.events[0].kind).toBe("response");
+  });
+
+  it("classifies JSON-RPC null-id error responses as responses", () => {
+    const t = new TraceBuilder({ executable: "node", args: [] });
+    t.recordMessage("server_to_client", {
+      jsonrpc: "2.0",
+      id: null,
+      error: { code: -32700, message: "Parse error" },
+    });
+    const trace = t.toJSON();
+    expect(trace.summary.responseCount).toBe(1);
+    expect(trace.summary.failedCount).toBe(1);
     expect(trace.events[0].kind).toBe("response");
   });
 
@@ -92,5 +176,38 @@ describe("TraceBuilder", () => {
     const trace = t.toJSON();
     expect(trace.summary.notificationCount).toBe(1);
     expect(trace.events[0].kind).toBe("notification");
+  });
+
+  it("keeps same-id requests in opposite directions separate", () => {
+    const t = new TraceBuilder({ executable: "node", args: [] });
+    t.recordMessage("server_to_client", {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "sampling/createMessage",
+      params: { prompt: "hello" },
+    });
+    t.recordMessage("client_to_server", {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/call",
+      params: { name: "echo", arguments: { text: "hi" } },
+    });
+    t.recordMessage("server_to_client", {
+      jsonrpc: "2.0",
+      id: 1,
+      result: { content: "tool result" },
+    });
+    t.recordMessage("client_to_server", {
+      jsonrpc: "2.0",
+      id: 1,
+      result: { content: "sampling result" },
+    });
+
+    const trace = t.toJSON();
+    expect(trace.calls.length).toBe(2);
+    const sampling = trace.calls.find((c) => c.method === "sampling/createMessage");
+    const tool = trace.calls.find((c) => c.method === "tools/call");
+    expect(sampling?.result).toEqual({ content: "sampling result" });
+    expect(tool?.result).toEqual({ content: "tool result" });
   });
 });

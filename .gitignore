@@ -1,9 +1,17 @@
 node_modules
 dist
 .omx
+.env
+.env.*
+.npmrc
+.pypirc
 *.log
 .DS_Store
 traces
+*.trace.json
+*.trace.html
+*.mcptrace.json
+*.mcptrace.html
 coverage
 .vitest
 tests/_edge_audit.mjs

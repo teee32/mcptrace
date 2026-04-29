@@ -1,6 +1,11 @@
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { TraceCall, TraceFile } from "./types.js";
+import { redactText, redactValue } from "./redact.js";
+
+interface DiffOptions {
+  redact?: boolean;
+}
 
 function loadTrace(path: string): TraceFile {
   const raw = readFileSync(path, "utf8");
@@ -70,16 +75,20 @@ function indexCalls(trace: TraceFile): {
   return { byIdentity, byGroup, all };
 }
 
-function describeCall(c: TraceCall): string {
+function formatParamValue(value: unknown, redact: boolean): string {
+  const output = redact ? redactValue(value) : value;
+  try {
+    return JSON.stringify(output) ?? String(output);
+  } catch {
+    return String(output);
+  }
+}
+
+function describeCall(c: TraceCall, redact: boolean): string {
   const parts = [`${c.method}`];
   if (c.toolName) parts.push(`(${c.toolName})`);
   if (c.params !== undefined) {
-    let p: string;
-    try {
-      p = JSON.stringify(c.params);
-    } catch {
-      p = String(c.params);
-    }
+    let p = formatParamValue(c.params, redact);
     if (p.length > 80) p = p.slice(0, 77) + "...";
     parts.push(`params=${p}`);
   }
@@ -90,9 +99,22 @@ function riskKey(code: string, message: string): string {
   return `${code}::${message}`;
 }
 
-export function diffTraces(oldPath: string, newPath: string): string {
+function formatRisk(key: string, count: number, redact: boolean): string {
+  const sep = key.indexOf("::");
+  const code = sep === -1 ? key : key.slice(0, sep);
+  const message = sep === -1 ? "" : key.slice(sep + 2);
+  const displayMessage = redact ? redactText(message) : message;
+  return `${code}::${displayMessage} (×${count})`;
+}
+
+export function diffTraces(
+  oldPath: string,
+  newPath: string,
+  options: DiffOptions = {},
+): string {
   const oldTrace = loadTrace(oldPath);
   const newTrace = loadTrace(newPath);
+  const redact = options.redact ?? false;
 
   const oldIdx = indexCalls(oldTrace);
   const newIdx = indexCalls(newTrace);
@@ -174,13 +196,13 @@ export function diffTraces(oldPath: string, newPath: string): string {
     if (added.length) {
       lines.push(`### + Added`);
       lines.push("");
-      for (const k of added) lines.push(`- ${describeCall(k.call)}`);
+      for (const k of added) lines.push(`- ${describeCall(k.call, redact)}`);
       lines.push("");
     }
     if (removed.length) {
       lines.push(`### - Removed`);
       lines.push("");
-      for (const k of removed) lines.push(`- ${describeCall(k.call)}`);
+      for (const k of removed) lines.push(`- ${describeCall(k.call, redact)}`);
       lines.push("");
     }
     if (changedParams.length) {
@@ -188,8 +210,8 @@ export function diffTraces(oldPath: string, newPath: string): string {
       lines.push("");
       for (const { from, to } of changedParams) {
         lines.push(`- \`${from.call.method}${from.call.toolName ? `(${from.call.toolName})` : ""}\``);
-        lines.push(`  - old params: \`${JSON.stringify(from.call.params)}\``);
-        lines.push(`  - new params: \`${JSON.stringify(to.call.params)}\``);
+        lines.push(`  - old params: \`${formatParamValue(from.call.params, redact)}\``);
+        lines.push(`  - new params: \`${formatParamValue(to.call.params, redact)}\``);
       }
       lines.push("");
     }
@@ -216,8 +238,10 @@ export function diffTraces(oldPath: string, newPath: string): string {
 
   const addedRisks: string[] = [];
   const removedRisks: string[] = [];
-  for (const [k, n] of newRisks) if (!oldRisks.has(k)) addedRisks.push(`${k} (×${n})`);
-  for (const [k, n] of oldRisks) if (!newRisks.has(k)) removedRisks.push(`${k} (×${n})`);
+  for (const [k, n] of newRisks)
+    if (!oldRisks.has(k)) addedRisks.push(formatRisk(k, n, redact));
+  for (const [k, n] of oldRisks)
+    if (!newRisks.has(k)) removedRisks.push(formatRisk(k, n, redact));
 
   if (addedRisks.length || removedRisks.length) {
     lines.push(`## Risks`);
