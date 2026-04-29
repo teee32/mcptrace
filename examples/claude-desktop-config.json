@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "filesystem-traced": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcptrace",
+        "wrap",
+        "--trace",
+        "/absolute/path/to/traces/fs.json",
+        "--report",
+        "/absolute/path/to/traces/fs.html",
+        "--",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/absolute/path/to/your/project"
+      ]
+    }
+  }
+}

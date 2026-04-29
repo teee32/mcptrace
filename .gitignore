@@ -1,0 +1,9 @@
+node_modules
+dist
+.omx
+*.log
+.DS_Store
+traces
+coverage
+.vitest
+tests/_edge_audit.mjs
