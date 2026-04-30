@@ -20,15 +20,15 @@ stdio server 前面的 CLI。
 ## 安装
 
 ```bash
-npm install -g mcptrace
+npm install -g @fjlkasdg45345/mcptrace
 # 或安装到当前项目
-npm install --save-dev mcptrace
+npm install --save-dev @fjlkasdg45345/mcptrace
 ```
 
 也可以不安装，直接通过 `npx` 运行：
 
 ```bash
-npx mcptrace wrap --trace ./trace.json -- <real-mcp-server-cmd>
+npx @fjlkasdg45345/mcptrace wrap --trace ./trace.json -- <real-mcp-server-cmd>
 ```
 
 ## 快速开始
@@ -63,7 +63,7 @@ mcptrace wrap \
     "filesystem-traced": {
       "command": "npx",
       "args": [
-        "-y", "mcptrace",
+        "-y", "@fjlkasdg45345/mcptrace",
         "wrap",
         "--trace", "/abs/path/traces/fs.json",
         "--report", "/abs/path/traces/fs.html",

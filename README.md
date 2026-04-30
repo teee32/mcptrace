@@ -23,15 +23,15 @@ MCP stdio server.
 ## Install
 
 ```bash
-npm install -g mcptrace
+npm install -g @fjlkasdg45345/mcptrace
 # or, locally
-npm install --save-dev mcptrace
+npm install --save-dev @fjlkasdg45345/mcptrace
 ```
 
 You can also run it without installing:
 
 ```bash
-npx mcptrace wrap --trace ./trace.json -- <real-mcp-server-cmd>
+npx @fjlkasdg45345/mcptrace wrap --trace ./trace.json -- <real-mcp-server-cmd>
 ```
 
 ## Quick start
@@ -67,7 +67,7 @@ Add an entry to your MCP config (paths must be absolute):
     "filesystem-traced": {
       "command": "npx",
       "args": [
-        "-y", "mcptrace",
+        "-y", "@fjlkasdg45345/mcptrace",
         "wrap",
         "--trace", "/abs/path/traces/fs.json",
         "--report", "/abs/path/traces/fs.html",

@@ -4,7 +4,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "mcptrace",
+        "@fjlkasdg45345/mcptrace",
         "wrap",
         "--trace",
         "/absolute/path/to/traces/fs.json",
