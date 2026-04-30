@@ -23,15 +23,15 @@ MCP stdio server.
 ## Install
 
 ```bash
-npm install -g @fjlkasdg45345/mcptrace
+npm install -g mcp-flight-recorder
 # or, locally
-npm install --save-dev @fjlkasdg45345/mcptrace
+npm install --save-dev mcp-flight-recorder
 ```
 
 You can also run it without installing:
 
 ```bash
-npx @fjlkasdg45345/mcptrace wrap --trace ./trace.json -- <real-mcp-server-cmd>
+npx mcp-flight-recorder wrap --trace ./trace.json -- <real-mcp-server-cmd>
 ```
 
 ## Quick start
@@ -67,7 +67,7 @@ Add an entry to your MCP config (paths must be absolute):
     "filesystem-traced": {
       "command": "npx",
       "args": [
-        "-y", "@fjlkasdg45345/mcptrace",
+        "-y", "mcp-flight-recorder",
         "wrap",
         "--trace", "/abs/path/traces/fs.json",
         "--report", "/abs/path/traces/fs.html",
