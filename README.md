@@ -224,3 +224,7 @@ npm test
 ## License
 
 MIT
+
+## Community Support
+
+- [LinuxDo](https://linux.do)
