@@ -40,7 +40,7 @@ function traceWithParams(params: unknown): TraceFile {
 
 describe("diffTraces", () => {
   it("detects nested parameter changes", () => {
-    const dir = mkdtempSync(join(tmpdir(), "mcptrace-diff-"));
+    const dir = mkdtempSync(join(tmpdir(), "mcp-flight-recorder-diff-"));
     const oldPath = join(dir, "old.json");
     const newPath = join(dir, "new.json");
     writeFileSync(

@@ -18,11 +18,11 @@ function ensureDir(filePath: string): void {
 }
 
 function logErr(msg: string): void {
-  process.stderr.write(`[mcptrace] ${msg}\n`);
+  process.stderr.write(`[mcp-flight-recorder] ${msg}\n`);
 }
 
 /**
- * Run mcptrace as a stdio proxy in front of a real MCP server.
+ * Run mcp-flight-recorder as a stdio proxy in front of a real MCP server.
  *
  * IMPORTANT: stdout is reserved for the MCP protocol. All log output goes to
  * stderr.
@@ -118,7 +118,7 @@ export async function runWrap(opts: WrapOptions): Promise<number> {
     while ((idx = stderrBuf.indexOf("\n")) !== -1) {
       const line = stderrBuf.slice(0, idx);
       stderrBuf = stderrBuf.slice(idx + 1);
-      process.stderr.write(`[mcptrace:server] ${line}\n`);
+      process.stderr.write(`[mcp-flight-recorder:server] ${line}\n`);
     }
   });
 
@@ -158,7 +158,7 @@ export async function runWrap(opts: WrapOptions): Promise<number> {
     child.on("exit", (code, signal) => {
       exited = true;
       if (stderrBuf.length > 0) {
-        process.stderr.write(`[mcptrace:server] ${stderrBuf}\n`);
+        process.stderr.write(`[mcp-flight-recorder:server] ${stderrBuf}\n`);
         stderrBuf = "";
       }
       flush();

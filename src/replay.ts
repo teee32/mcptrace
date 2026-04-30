@@ -28,7 +28,7 @@ function loadTrace(path: string): TraceFile {
 }
 
 function logErr(msg: string): void {
-  process.stderr.write(`[mcptrace:replay] ${msg}\n`);
+  process.stderr.write(`[mcp-flight-recorder:replay] ${msg}\n`);
 }
 
 function keyForId(id: string | number): string {
@@ -157,7 +157,7 @@ export async function runReplay(opts: ReplayOptions): Promise<ReplaySummary> {
 
 export function formatReplaySummary(s: ReplaySummary): string {
   const lines: string[] = [];
-  lines.push(`# MCPTrace replay summary`);
+  lines.push(`# MCP Flight Recorder replay summary`);
   lines.push("");
   lines.push(`- sent messages: **${s.sentMessages}**`);
   lines.push(`- received messages: **${s.receivedMessages}**`);

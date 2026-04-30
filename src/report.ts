@@ -260,12 +260,12 @@ export function renderReport(trace: TraceFile): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MCPTrace Report</title>
+<title>MCP Flight Recorder Report</title>
 <style>${STYLE}</style>
 </head>
 <body>
 <header>
-  <h1>MCPTrace Report</h1>
+  <h1>MCP Flight Recorder Report</h1>
   <div class="meta">
     <code class="cmd">${escapeHtml(cmd || "(no command)")}</code>
     &nbsp;·&nbsp; ${escapeHtml(trace.startedAt)} → ${escapeHtml(trace.endedAt)}

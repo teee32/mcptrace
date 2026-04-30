@@ -11,7 +11,7 @@ function writeJson(path: string, value: unknown): void {
 
 describe("runReplay", () => {
   it("keeps numeric and string request ids separate", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "mcptrace-replay-"));
+    const dir = mkdtempSync(join(tmpdir(), "mcp-flight-recorder-replay-"));
     const tracePath = join(dir, "trace.json");
     const serverPath = join(dir, "server.cjs");
 

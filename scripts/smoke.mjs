@@ -2,11 +2,11 @@ import { spawn } from "node:child_process";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 
 const paths = [
-  "/tmp/mcptrace-smoke-a.json",
-  "/tmp/mcptrace-smoke-b.json",
-  "/tmp/mcptrace-smoke-raw.json",
-  "/tmp/mcptrace-smoke-a.html",
-  "/tmp/mcptrace-smoke-report.html",
+  "/tmp/mcp-flight-recorder-smoke-a.json",
+  "/tmp/mcp-flight-recorder-smoke-b.json",
+  "/tmp/mcp-flight-recorder-smoke-raw.json",
+  "/tmp/mcp-flight-recorder-smoke-a.html",
+  "/tmp/mcp-flight-recorder-smoke-report.html",
 ];
 
 for (const path of paths) {
@@ -70,9 +70,9 @@ const wrapA = await run(
     "dist/cli.js",
     "wrap",
     "--trace",
-    "/tmp/mcptrace-smoke-a.json",
+    "/tmp/mcp-flight-recorder-smoke-a.json",
     "--report",
-    "/tmp/mcptrace-smoke-a.html",
+    "/tmp/mcp-flight-recorder-smoke-a.html",
     "--",
     "node",
     ...server,
@@ -85,7 +85,7 @@ const wrapB = await run(
     "dist/cli.js",
     "wrap",
     "--trace",
-    "/tmp/mcptrace-smoke-b.json",
+    "/tmp/mcp-flight-recorder-smoke-b.json",
     "--",
     "node",
     ...server,
@@ -98,7 +98,7 @@ const wrapRaw = await run(
     "dist/cli.js",
     "wrap",
     "--trace",
-    "/tmp/mcptrace-smoke-raw.json",
+    "/tmp/mcp-flight-recorder-smoke-raw.json",
     "--unsafe-raw",
     "--",
     "node",
@@ -107,34 +107,34 @@ const wrapRaw = await run(
   inputA,
 );
 
-const traceText = readFileSync("/tmp/mcptrace-smoke-a.json", "utf8");
-const rawText = readFileSync("/tmp/mcptrace-smoke-raw.json", "utf8");
+const traceText = readFileSync("/tmp/mcp-flight-recorder-smoke-a.json", "utf8");
+const rawText = readFileSync("/tmp/mcp-flight-recorder-smoke-raw.json", "utf8");
 const trace = JSON.parse(traceText);
 const rawTrace = JSON.parse(rawText);
 const reportOk =
-  existsSync("/tmp/mcptrace-smoke-a.html") &&
-  readFileSync("/tmp/mcptrace-smoke-a.html", "utf8").includes(
-    "MCPTrace Report",
+  existsSync("/tmp/mcp-flight-recorder-smoke-a.html") &&
+  readFileSync("/tmp/mcp-flight-recorder-smoke-a.html", "utf8").includes(
+    "MCP Flight Recorder Report",
   );
 
 const report = await run("node", [
   "dist/cli.js",
   "report",
-  "/tmp/mcptrace-smoke-raw.json",
+  "/tmp/mcp-flight-recorder-smoke-raw.json",
   "--out",
-  "/tmp/mcptrace-smoke-report.html",
+  "/tmp/mcp-flight-recorder-smoke-report.html",
 ]);
-const renderedReport = readFileSync("/tmp/mcptrace-smoke-report.html", "utf8");
+const renderedReport = readFileSync("/tmp/mcp-flight-recorder-smoke-report.html", "utf8");
 const diff = await run("node", [
   "dist/cli.js",
   "diff",
-  "/tmp/mcptrace-smoke-a.json",
-  "/tmp/mcptrace-smoke-b.json",
+  "/tmp/mcp-flight-recorder-smoke-a.json",
+  "/tmp/mcp-flight-recorder-smoke-b.json",
 ]);
 const replay = await run("node", [
   "dist/cli.js",
   "replay",
-  "/tmp/mcptrace-smoke-a.json",
+  "/tmp/mcp-flight-recorder-smoke-a.json",
   "--",
   "node",
   ...server,
@@ -181,7 +181,7 @@ const result = {
   reportOk,
   reportCommand: {
     code: report.code,
-    exists: existsSync("/tmp/mcptrace-smoke-report.html"),
+    exists: existsSync("/tmp/mcp-flight-recorder-smoke-report.html"),
     redacted: !renderedReport.includes(secret),
   },
   diff: {
@@ -191,7 +191,7 @@ const result = {
   },
   replay: {
     code: replay.code,
-    hasSummary: replay.stdout.includes("MCPTrace replay summary"),
+    hasSummary: replay.stdout.includes("MCP Flight Recorder replay summary"),
   },
   missingReport: {
     code: missingReport.code,

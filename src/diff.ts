@@ -11,7 +11,7 @@ function loadTrace(path: string): TraceFile {
   const raw = readFileSync(path, "utf8");
   const parsed = JSON.parse(raw) as TraceFile;
   if (!parsed || !Array.isArray(parsed.events) || !Array.isArray(parsed.calls)) {
-    throw new Error(`File does not look like an mcptrace trace: ${path}`);
+    throw new Error(`File does not look like an mcp-flight-recorder trace: ${path}`);
   }
   return parsed;
 }
@@ -120,7 +120,7 @@ export function diffTraces(
   const newIdx = indexCalls(newTrace);
 
   const lines: string[] = [];
-  lines.push(`# MCPTrace diff`);
+  lines.push(`# MCP Flight Recorder diff`);
   lines.push("");
   lines.push(`- old: \`${oldPath}\``);
   lines.push(`- new: \`${newPath}\``);

@@ -1,10 +1,10 @@
-# MCPTrace
+# MCP Flight Recorder
 
 [简体中文](./README.zh-CN.md) | English
 
-> **MCPTrace is a flight recorder and replay debugger for MCP stdio servers.**
+> **MCP Flight Recorder is a flight recorder and replay debugger for MCP stdio servers.**
 
-MCPTrace sits between an AI agent (Claude Desktop, Claude Code, Cursor, …) and
+MCP Flight Recorder sits between an AI agent (Claude Desktop, Claude Code, Cursor, …) and
 a Model Context Protocol stdio server. It transparently forwards every
 JSON-RPC message in both directions while recording a structured trace, a
 risk-annotated HTML timeline report, and a replayable log.
@@ -37,25 +37,25 @@ npx mcp-flight-recorder wrap --trace ./trace.json -- <real-mcp-server-cmd>
 ## Quick start
 
 ```bash
-mcptrace wrap \
+mcp-flight-recorder wrap \
   --trace ./traces/fs.json \
   --report ./traces/fs.html \
   -- npx -y @modelcontextprotocol/server-filesystem .
 ```
 
-`mcptrace` becomes the MCP server your client talks to. It spawns the real
+`mcp-flight-recorder` becomes the MCP server your client talks to. It spawns the real
 server as a child, forwards every line in both directions, and records the
 traffic. When the client disconnects, the trace JSON and HTML report are
 written to disk.
 
-By default, MCPTrace redacts common secret-bearing fields such as
+By default, MCP Flight Recorder redacts common secret-bearing fields such as
 `authorization`, `token`, `apiKey`, `password`, `secret`, and `private_key`, and
 omits raw JSON-RPC lines from persisted traces. Use `--unsafe-raw` only when you
 need byte-for-byte payload capture for private local debugging.
 
-> **stdout is sacred.** In `wrap` mode, mcptrace never writes anything to
+> **stdout is sacred.** In `wrap` mode, mcp-flight-recorder never writes anything to
 > stdout other than valid MCP JSON-RPC. All logs go to stderr, prefixed with
-> `[mcptrace]` or `[mcptrace:server]`.
+> `[mcp-flight-recorder]` or `[mcp-flight-recorder:server]`.
 
 ## Use with Claude Desktop / Claude Code
 
@@ -83,31 +83,31 @@ See [`examples/claude-desktop-config.json`](./examples/claude-desktop-config.jso
 
 ## CLI
 
-### `mcptrace wrap`
+### `mcp-flight-recorder wrap`
 
 ```bash
-mcptrace wrap --trace <path> [--report <path>] [--unsafe-raw] -- <server-cmd> [args...]
+mcp-flight-recorder wrap --trace <path> [--report <path>] [--unsafe-raw] -- <server-cmd> [args...]
 ```
 
-Run an MCP stdio server through mcptrace.
+Run an MCP stdio server through mcp-flight-recorder.
 
 Default traces are redacted for safer sharing. `--unsafe-raw` stores unredacted
 payloads and raw JSON-RPC lines.
 
-### `mcptrace report`
+### `mcp-flight-recorder report`
 
 ```bash
-mcptrace report ./trace.json --out ./report.html [--unsafe-raw]
+mcp-flight-recorder report ./trace.json --out ./report.html [--unsafe-raw]
 ```
 
 Re-render the HTML report from a saved trace. The HTML is a single
 self-contained file — no CDN, no fonts, no JS framework. Existing trace files
 are redacted again while rendering unless `--unsafe-raw` is passed.
 
-### `mcptrace diff`
+### `mcp-flight-recorder diff`
 
 ```bash
-mcptrace diff ./old-trace.json ./new-trace.json [--unsafe-raw]
+mcp-flight-recorder diff ./old-trace.json ./new-trace.json [--unsafe-raw]
 ```
 
 Prints a markdown diff showing:
@@ -119,10 +119,10 @@ Prints a markdown diff showing:
 
 Diff output redacts common secret-bearing fields by default.
 
-### `mcptrace replay`
+### `mcp-flight-recorder replay`
 
 ```bash
-mcptrace replay ./trace.json -- <server-cmd> [args...]
+mcp-flight-recorder replay ./trace.json -- <server-cmd> [args...]
 ```
 
 Replays every `client_to_server` request / notification from the trace
@@ -188,7 +188,7 @@ or committing them.
 
 ## Risk detection
 
-MCPTrace scans every message for known-risky patterns and tags them with
+MCP Flight Recorder scans every message for known-risky patterns and tags them with
 `riskFlags`. It is intentionally a simple, regex-based scanner — fast,
 predictable, and easy to extend. Categories:
 

@@ -1,10 +1,10 @@
-# MCPTrace
+# MCP Flight Recorder
 
 简体中文 | [English](./README.md)
 
-> **MCPTrace 是 MCP stdio 服务器的飞行记录仪和回放调试器。**
+> **MCP Flight Recorder 是 MCP stdio 服务器的飞行记录仪和回放调试器。**
 
-MCPTrace 位于 AI agent（Claude Desktop、Claude Code、Cursor 等）和
+MCP Flight Recorder 位于 AI agent（Claude Desktop、Claude Code、Cursor 等）和
 Model Context Protocol stdio 服务器之间。它会透明转发双向 JSON-RPC 消息，
 同时记录结构化 trace、带风险标注的 HTML 时间线报告，以及可回放的日志。
 
@@ -34,24 +34,24 @@ npx mcp-flight-recorder wrap --trace ./trace.json -- <real-mcp-server-cmd>
 ## 快速开始
 
 ```bash
-mcptrace wrap \
+mcp-flight-recorder wrap \
   --trace ./traces/fs.json \
   --report ./traces/fs.html \
   -- npx -y @modelcontextprotocol/server-filesystem .
 ```
 
-此时 `mcptrace` 会变成 MCP client 连接的 server。它会启动真实 server
+此时 `mcp-flight-recorder` 会变成 MCP client 连接的 server。它会启动真实 server
 作为子进程，转发双向每一行消息，并记录流量。client 断开后，trace JSON
 和 HTML 报告会写入磁盘。
 
-默认情况下，MCPTrace 会脱敏常见敏感字段，例如 `authorization`、`token`、
+默认情况下，MCP Flight Recorder 会脱敏常见敏感字段，例如 `authorization`、`token`、
 `apiKey`、`password`、`secret` 和 `private_key`，并且不会把原始 JSON-RPC
 行持久化到 trace 中。只有在私有本地调试、确实需要逐字节捕获 payload 时，
 才使用 `--unsafe-raw`。
 
-> **stdout 是协议通道。** 在 `wrap` 模式下，mcptrace 不会向 stdout
+> **stdout 是协议通道。** 在 `wrap` 模式下，mcp-flight-recorder 不会向 stdout
 > 写入任何非 MCP JSON-RPC 内容。所有日志都会写到 stderr，并带有
-> `[mcptrace]` 或 `[mcptrace:server]` 前缀。
+> `[mcp-flight-recorder]` 或 `[mcp-flight-recorder:server]` 前缀。
 
 ## 在 Claude Desktop / Claude Code 中使用
 
@@ -79,31 +79,31 @@ mcptrace wrap \
 
 ## CLI
 
-### `mcptrace wrap`
+### `mcp-flight-recorder wrap`
 
 ```bash
-mcptrace wrap --trace <path> [--report <path>] [--unsafe-raw] -- <server-cmd> [args...]
+mcp-flight-recorder wrap --trace <path> [--report <path>] [--unsafe-raw] -- <server-cmd> [args...]
 ```
 
-通过 mcptrace 运行一个 MCP stdio server。
+通过 mcp-flight-recorder 运行一个 MCP stdio server。
 
 默认 trace 会被脱敏，便于更安全地分享。`--unsafe-raw` 会存储未脱敏 payload
 和原始 JSON-RPC 行。
 
-### `mcptrace report`
+### `mcp-flight-recorder report`
 
 ```bash
-mcptrace report ./trace.json --out ./report.html [--unsafe-raw]
+mcp-flight-recorder report ./trace.json --out ./report.html [--unsafe-raw]
 ```
 
 从已有 trace 重新生成 HTML 报告。HTML 是单文件、自包含的，不依赖 CDN、
 字体或 JS 框架。除非传入 `--unsafe-raw`，否则渲染报告时会再次脱敏已有
 trace 文件。
 
-### `mcptrace diff`
+### `mcp-flight-recorder diff`
 
 ```bash
-mcptrace diff ./old-trace.json ./new-trace.json [--unsafe-raw]
+mcp-flight-recorder diff ./old-trace.json ./new-trace.json [--unsafe-raw]
 ```
 
 输出 markdown 格式的差异报告，包括：
@@ -115,10 +115,10 @@ mcptrace diff ./old-trace.json ./new-trace.json [--unsafe-raw]
 
 diff 输出默认会脱敏常见敏感字段。
 
-### `mcptrace replay`
+### `mcp-flight-recorder replay`
 
 ```bash
-mcptrace replay ./trace.json -- <server-cmd> [args...]
+mcp-flight-recorder replay ./trace.json -- <server-cmd> [args...]
 ```
 
 把 trace 中每个 `client_to_server` 请求 / 通知回放到一个新启动的 server，
@@ -182,7 +182,7 @@ MCP 流量可能包含 prompts、文件内容、私有路径、API key 和其他
 
 ## 风险检测
 
-MCPTrace 会扫描每条消息中的已知风险模式，并打上 `riskFlags`。它刻意保持为
+MCP Flight Recorder 会扫描每条消息中的已知风险模式，并打上 `riskFlags`。它刻意保持为
 简单的正则扫描器：快速、可预测，也容易扩展。当前分类包括：
 
 | code                | severity | 示例                                   |

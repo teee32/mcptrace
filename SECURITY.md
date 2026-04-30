@@ -1,6 +1,6 @@
 # Security Policy
 
-MCPTrace records MCP traffic, which can include prompts, file contents, tokens,
+MCP Flight Recorder records MCP traffic, which can include prompts, file contents, tokens,
 and other private data. Treat trace JSON, HTML reports, diffs, and replay logs as
 sensitive unless you created them with the default redaction behavior and have
 reviewed the output.

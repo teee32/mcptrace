@@ -19,23 +19,33 @@ function splitDoubleDash(argv: string[]): { before: string[]; after: string[] } 
 }
 
 function failUsage(message: string): never {
-  process.stderr.write(`[mcptrace] error: ${message}\n`);
+  process.stderr.write(`[mcp-flight-recorder] error: ${message}\n`);
   process.exit(2);
+}
+
+function packageVersion(): string {
+  try {
+    const raw = readFileSync(new URL("../package.json", import.meta.url), "utf8");
+    const parsed = JSON.parse(raw) as { version?: string };
+    return parsed.version ?? "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
 }
 
 const program = new Command();
 program
-  .name("mcptrace")
+  .name("mcp-flight-recorder")
   .description(
     "Flight recorder and replay debugger for MCP stdio servers.",
   )
-  .version("0.1.0");
+  .version(packageVersion());
 
 // wrap
 program
   .command("wrap")
   .description(
-    "Run an MCP stdio server through mcptrace, recording all JSON-RPC traffic.",
+    "Run an MCP stdio server through mcp-flight-recorder, recording all JSON-RPC traffic.",
   )
   .requiredOption("--trace <path>", "path to write the trace JSON file")
   .option("--report <path>", "also write an HTML report to this path")
@@ -48,14 +58,14 @@ program
     const { before, after } = splitDoubleDash(process.argv.slice(2));
     if (after.length === 0) {
       process.stderr.write(
-        "[mcptrace] error: missing real MCP server command after --\n",
+        "[mcp-flight-recorder] error: missing real MCP server command after --\n",
       );
       process.exit(2);
     }
     const opts = parseWrapFlags(before.slice(1));
     const [executable, ...rest] = after;
     if (!executable) {
-      process.stderr.write("[mcptrace] error: empty server command\n");
+      process.stderr.write("[mcp-flight-recorder] error: empty server command\n");
       process.exit(2);
     }
     const code = await runWrap({
@@ -92,7 +102,7 @@ function parseWrapFlags(tokens: string[]): {
       printWrapHelp();
       process.exit(0);
     } else {
-      process.stderr.write(`[mcptrace] error: unknown wrap option: ${t}\n`);
+      process.stderr.write(`[mcp-flight-recorder] error: unknown wrap option: ${t}\n`);
       process.exit(2);
     }
   }
@@ -118,7 +128,7 @@ function readInlineFlagValue(value: string, flag: string): string {
 function printWrapHelp(): void {
   process.stdout.write(
     [
-      "Usage: mcptrace wrap --trace <path> [--report <path>] -- <server-cmd> [args...]",
+      "Usage: mcp-flight-recorder wrap --trace <path> [--report <path>] -- <server-cmd> [args...]",
       "",
       "Options:",
       "  --trace <path>    where to write the trace JSON file (required)",
@@ -127,7 +137,7 @@ function printWrapHelp(): void {
       "  -h, --help        show help",
       "",
       "Example:",
-      "  mcptrace wrap --trace ./traces/fs.json --report ./traces/fs.html \\",
+      "  mcp-flight-recorder wrap --trace ./traces/fs.json --report ./traces/fs.html \\",
       "    -- npx -y @modelcontextprotocol/server-filesystem .",
       "",
     ].join("\n"),
@@ -146,7 +156,7 @@ program
     const html = renderReport(opts.unsafeRaw ? data : redactTrace(data));
     ensureDir(opts.out);
     writeFileSync(opts.out, html, "utf8");
-    process.stderr.write(`[mcptrace] report written to ${opts.out}\n`);
+    process.stderr.write(`[mcp-flight-recorder] report written to ${opts.out}\n`);
   });
 
 // diff
@@ -171,13 +181,13 @@ program
     const { after } = splitDoubleDash(process.argv.slice(2));
     if (after.length === 0) {
       process.stderr.write(
-        "[mcptrace] error: missing server command after --\n",
+        "[mcp-flight-recorder] error: missing server command after --\n",
       );
       process.exit(2);
     }
     const [executable, ...rest] = after;
     if (!executable) {
-      process.stderr.write("[mcptrace] error: empty server command\n");
+      process.stderr.write("[mcp-flight-recorder] error: empty server command\n");
       process.exit(2);
     }
     const summary = await runReplay({
@@ -190,6 +200,6 @@ program
   });
 
 program.parseAsync(process.argv).catch((err) => {
-  process.stderr.write(`[mcptrace] error: ${(err as Error).message}\n`);
+  process.stderr.write(`[mcp-flight-recorder] error: ${(err as Error).message}\n`);
   process.exit(1);
 });

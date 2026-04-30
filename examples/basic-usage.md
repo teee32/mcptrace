@@ -3,29 +3,29 @@
 ## 1. Wrap an MCP server and record traffic
 
 ```bash
-mcptrace wrap \
+mcp-flight-recorder wrap \
   --trace ./traces/fs.json \
   --report ./traces/fs.html \
   -- npx -y @modelcontextprotocol/server-filesystem .
 ```
 
-`mcptrace` itself is now an MCP stdio server. Point your client (Claude
+`mcp-flight-recorder` itself is now an MCP stdio server. Point your client (Claude
 Desktop, Claude Code, Cursor, etc.) at it. All JSON-RPC traffic will be
 forwarded to the underlying server and recorded.
 
-When the client disconnects, `mcptrace` writes the trace JSON and (if
+When the client disconnects, `mcp-flight-recorder` writes the trace JSON and (if
 requested) a self-contained HTML report.
 
 ## 2. Re-render the HTML report later
 
 ```bash
-mcptrace report ./traces/fs.json --out ./traces/fs.html
+mcp-flight-recorder report ./traces/fs.json --out ./traces/fs.html
 ```
 
 ## 3. Diff two traces
 
 ```bash
-mcptrace diff ./traces/before.json ./traces/after.json > diff.md
+mcp-flight-recorder diff ./traces/before.json ./traces/after.json > diff.md
 ```
 
 Useful when comparing runs across versions of an MCP server, or before / after
@@ -34,7 +34,7 @@ a prompt change.
 ## 4. Replay a trace against a server
 
 ```bash
-mcptrace replay ./traces/fs.json -- npx -y @modelcontextprotocol/server-filesystem .
+mcp-flight-recorder replay ./traces/fs.json -- npx -y @modelcontextprotocol/server-filesystem .
 ```
 
 Replays only the `client_to_server` requests / notifications captured in the

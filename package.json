@@ -1,6 +1,6 @@
 {
   "name": "mcp-flight-recorder",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Flight recorder and replay debugger for MCP stdio servers.",
   "license": "MIT",
   "type": "module",
@@ -13,7 +13,7 @@
   },
   "homepage": "https://github.com/teee32/mcp-flight-recorder#readme",
   "bin": {
-    "mcptrace": "dist/cli.js"
+    "mcp-flight-recorder": "dist/cli.js"
   },
   "files": [
     "dist",
