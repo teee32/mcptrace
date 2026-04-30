@@ -13,7 +13,7 @@
   },
   "homepage": "https://github.com/teee32/mcptrace#readme",
   "bin": {
-    "mcptrace": "./dist/cli.js"
+    "mcptrace": "dist/cli.js"
   },
   "files": [
     "dist",
