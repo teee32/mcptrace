@@ -6,12 +6,12 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/teee32/mcptrace.git"
+    "url": "git+https://github.com/teee32/mcp-flight-recorder.git"
   },
   "bugs": {
-    "url": "https://github.com/teee32/mcptrace/issues"
+    "url": "https://github.com/teee32/mcp-flight-recorder/issues"
   },
-  "homepage": "https://github.com/teee32/mcptrace#readme",
+  "homepage": "https://github.com/teee32/mcp-flight-recorder#readme",
   "bin": {
     "mcptrace": "dist/cli.js"
   },

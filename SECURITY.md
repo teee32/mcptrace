@@ -8,7 +8,7 @@ reviewed the output.
 ## Reporting a Vulnerability
 
 Please report vulnerabilities privately through GitHub Security Advisories for
-`teee32/mcptrace`.
+`teee32/mcp-flight-recorder`.
 
 Do not attach raw traces or reports to public issues. If a reproduction requires
 traffic data, prefer a redacted trace or a minimal synthetic fixture.
